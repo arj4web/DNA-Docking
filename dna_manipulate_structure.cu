@@ -1,4 +1,4 @@
-#include "dna_structures.h"
+#include "dna_structures.cuh"
 
 struct DNA_structure read_dna_file(char *filename){
     FILE *fp;
@@ -143,7 +143,7 @@ struct DNA_structure duplicate_dna_structure(struct DNA_structure dna){
     }
     return new_dna;
 }
-__global__ void gpu_translate(struct Nucleic_Acid Nucleotide,float x_shift, float y_shift, float z_shift,int ydim)
+__global__ void gpu_translate(struct Nucleic_Acid *Nucleotide,float x_shift, float y_shift, float z_shift,int ydim)
 {
     int nucleotide=threadIdx.y+(blockDim.y*blockIdx.y);
     int atom=threadIdx.x+(blockDim.x*blockIdx.x);
@@ -176,7 +176,7 @@ struct DNA_structure translate_dna_structure(struct DNA_structure dna, float x_s
 
     dim3 numblocks((a/threadperblock2D.x)+1,(dna.length/threadperblock2D.y)+1);
 
-    gpu_translate<<<numblocks,threadsperblock2D>>>(d_nucleotide,x_shift,y_shift,z_shift,dna.length+1);
+    gpu_translate<<<numblocks,threadperblock2D>>>(d_nucleotide,x_shift,y_shift,z_shift,dna.length+1);
     cudaDeviceSynchronize();
     cudaMemcpy(nucleotide,d_nucleotide,(dna.length+1)*sizeof(struct Nucleic_Acid),cudaMemcpyDeviceToHost);
     for (int i = 1; i <= dna.length; i++)
@@ -226,7 +226,7 @@ struct DNA_structure translate_dna_to_origin(struct DNA_structure dna){
 
     dim3 numblocks((a/threadperblock2D.x)+1,(dna.length/threadperblock2D.y)+1);
 
-    gpu_translate<<<numblocks,threadsperblock2D>>>(d_nucleotide,-average_x,-average_y,-average_z,dna.length+1);
+    gpu_translate<<<numblocks,threadperblock2D>>>(d_nucleotide,-average_x,-average_y,-average_z,dna.length+1);
     cudaDeviceSynchronize();
     cudaMemcpy(nucleotide,d_nucleotide,(dna.length+1)*sizeof(struct Nucleic_Acid),cudaMemcpyDeviceToHost);
     for (int i = 1; i <= dna.length; i++)
@@ -276,11 +276,11 @@ struct DNA_structure rotate_dna(struct DNA_structure dna, int z_twist, int theta
 /************/
 
   /* Variables */
-  struct Structure	new_dna ;
+  struct DNA_structure	new_dna ;
 
 /************/
   int a=0;
-  new_dna = duplicate_structure( dna ) ;
+  new_dna = duplicate_dna_structure( dna ) ;
   struct Nucleic_Acid *nucleotide,*d_nucleotide;
   nucleotide = (struct Nucleic_Acid*)malloc((dna.length+1)*sizeof(Nucleic_Acid));
   for (int i = 1; i <=dna.length; i++)
