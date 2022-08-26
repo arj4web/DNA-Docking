@@ -44,3 +44,5 @@ struct DNA_structure{
 
 #define min(a,b) (((a)<(b))?(a):(b))
 #define max(a,b) (((a)>(b))?(a):(b))
+extern __device__ __host__ int gord( float position , float grid_span , int grid_size ) ;
+extern __device__ float pythagoras( float x1 , float y1 , float z1 , float x2 , float y2 , float z2 ) ;
