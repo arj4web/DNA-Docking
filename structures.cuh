@@ -81,6 +81,14 @@ struct Amino_Acid{
 	int		size ;
 	struct Atom	*Atom ;
 } ;
+struct Nucleic_Acid
+{
+    char nucleicAcid_name[4];
+    char chainID[2];
+    char nuCode[6];
+    int size;
+    struct Atom *atom;
+};
 
 struct Structure{
 	char			ident[256] ;

@@ -29,7 +29,6 @@ struct Nucleic_Acid
     int size;
     struct Atom *atom;
 };
-
 struct DNA_structure{
     char name[256];
     int length;

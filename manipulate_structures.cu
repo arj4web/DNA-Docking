@@ -118,7 +118,7 @@ struct Structure read_pdb_to_structure( char *pdb_file_name ) {
       strncpy( res_name,		line_buffer+17,	3 ) ;
       strncpy( chainID,			line_buffer+21,	1 ) ;
       strncpy( res_seq_plus_iCode,	line_buffer+22,	5 ) ;
-      strncpy( olc,			line_buffer+80,	1 ) ;
+      strncpy( olc,			line_buffer+77,	1 ) ;
 
       strncpy( atom_name + 4,		"\0", 1 ) ;
       strncpy( res_name + 3,		"\0", 1 ) ;
