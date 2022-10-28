@@ -199,7 +199,176 @@ struct Structure read_pdb_to_structure( char *pdb_file_name ) {
 
 }
 
+struct DNA_Structure read_pdb_to_dna_structure( char *pdb_file_name ) {
 
+/************/
+
+  /* Variables */
+
+  /* Counters */
+  int	n_nucleotides ;	/* number of nucleotides */
+  int	nuc_size ;	/* number of atoms in single residue */
+
+  /* File stuff */
+  FILE	*pdb_file ;
+  char	line_buffer[100] ;
+
+  /* What the data is going into */
+  struct DNA_Structure		This_Structure ;
+
+  /* Variables from the PDB file */
+  int	serial ;
+  char		atom_name[5] ;
+  char		nucleicAcid_name[4] ;
+  char		chainID[2] ;
+  char		nuCode[6] ;
+  float		coord_x , coord_y , coord_z ;
+  float		occupancy, temp_factor ;
+  char		olc[2] ;
+
+  /* Comparison values */
+  char	present_nuCode[6] ;
+
+/************/
+
+  setvbuf( stdout , (char *)NULL , _IONBF , 0 ) ;
+
+  /* File handling */
+
+  /* Open file */
+  printf( "  reading parsed pdb file: %s\n", pdb_file_name ) ;
+  if( ( pdb_file = fopen( pdb_file_name, "r" ) ) == NULL ) {
+    printf( "This file does not exist here, or is unreadable.\nDying\n\n" ) ;
+    exit( EXIT_FAILURE ) ;
+  }
+
+/************/
+
+  /* Initialisations */
+
+  /* Counters */
+  n_nucleotides = 0 ;
+  nuc_size = 0 ;
+
+  /* Comparison values */
+  strcpy( present_nuCode , ">" ) ;
+
+  /* Memory allocation */
+  if( ( This_Structure.nucleotide = ( struct Nucleic_Acid * ) malloc ( sizeof_Amino_Acid ) ) == NULL ) {
+    GENERAL_MEMORY_PROBLEM
+  }
+
+/************/
+
+  /* Read PDB file */
+
+  /* The Atoms */
+
+  while( fgets( line_buffer, 85, pdb_file ) ) {
+
+    if( strncmp( line_buffer, "ATOM", 4 ) == 0 ) {
+
+      /* Have an ATOM */
+
+      /* Get Values */
+
+      /* the following may seem silly, but sscanf convention means that two
+         float fields with no white space between them, where the first is
+         less than the maximum field width, mucks up everything.
+      */
+
+      sscanf( line_buffer +  6 , "%5d" , &serial ) ;
+      sscanf( line_buffer + 30 , "%8f" , &coord_x ) ;
+      sscanf( line_buffer + 38 , "%8f" , &coord_y ) ;
+      sscanf( line_buffer + 46 , "%8f" , &coord_z ) ;
+      sscanf( line_buffer + 54 , "%6f" , &occupancy ) ;
+      sscanf( line_buffer + 60 , "%6f" , &temp_factor ) ;
+      
+
+      strncpy( atom_name,		line_buffer+12,	4 ) ;
+      strncpy( nucleicAcid_name,		line_buffer+17,	3 ) ;
+      strncpy( chainID,			line_buffer+21,	1 ) ;
+      strncpy( nuCode,	line_buffer+22,	5 ) ;
+      strncpy( olc,			line_buffer+77,	1 ) ;
+
+      strncpy( atom_name + 4,		"\0", 1 ) ;
+      strncpy( nucleicAcid_name + 3,		"\0", 1 ) ;
+      strncpy( chainID + 1,		"\0", 1 ) ;
+      strncpy( nuCode + 5,	"\0", 1 ) ;
+      strncpy( olc + 1,			"\0", 1 ) ;
+
+/************/
+
+      /* New Residue */
+
+      if( strcmp( nuCode , present_nuCode ) != 0 ) {
+
+        /* have next residue */
+
+        /* Store old info */
+        This_Structure.nucleotide[n_nucleotides].size = nuc_size ;
+
+        /* Increment, Reset numbers */
+        n_nucleotides ++ ;
+        nuc_size = 0 ;
+
+        /* Memory management */
+        if( ( This_Structure.nucleotide = (struct Nucleic_Acid * ) realloc ( This_Structure.nucleotide, ( n_nucleotides + 1 ) * sizeof_Amino_Acid ) ) == NULL ) {
+          GENERAL_MEMORY_PROBLEM
+        }
+        if( ( This_Structure.nucleotide[n_nucleotides].Atom = ( struct Atom * ) malloc ( sizeof_Atom ) ) == NULL ) {
+          GENERAL_MEMORY_PROBLEM
+        }
+
+        /* Store new info */
+        strcpy( This_Structure.nucleotide[n_nucleotides].nuCode , nuCode );
+        strcpy( This_Structure.nucleotide[n_nucleotides].nucleicAcid_name ,           nucleicAcid_name ) ;
+        strcpy( This_Structure.nucleotide[n_nucleotides].chainID ,            chainID ) ;
+        strcpy( This_Structure.nucleotide[n_nucleotides].olc,                 olc ) ;
+        
+      }
+
+      strcpy( present_nuCode , nuCode ) ;
+
+/************/
+
+      /* Put Atoms into Structure */
+
+      nuc_size ++ ;
+
+      if( ( This_Structure.nucleotide[n_nucleotides].Atom = ( struct Atom * ) realloc ( This_Structure.nucleotide[n_nucleotides].Atom, ( nuc_size + 1 ) * sizeof_Atom ) ) == NULL ) {
+        GENERAL_MEMORY_PROBLEM
+      }
+
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].serial = serial ;
+      strcpy( This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].atom_name, atom_name ) ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].coord[1] = coord_x ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].coord[2] = coord_y ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].coord[3] = coord_z ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].occupancy = occupancy ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].temp_factor = temp_factor ;
+
+/************/
+
+    }
+
+  } /* got to end of pdb file */
+
+/************/
+
+  /* Clean up */
+
+  This_Structure.nucleotide[n_nucleotides].size = nuc_size ;
+  This_Structure.length = n_nucleotides ;
+  strcpy( This_Structure.name , pdb_file_name  );
+
+  /* Finish off */
+
+  fclose( pdb_file ) ;
+
+  return This_Structure ;
+
+}
 
 /************************/
 

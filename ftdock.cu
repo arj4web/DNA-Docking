@@ -402,7 +402,7 @@ int main( int argc , char *argv[] ) {
     default_electrostatics = "(read from rescue file)" ;
 
     while( fgets( line_buffer , 99 , ftdock_file ) ) {
-
+      if( strncmp( line_buffer , "Mode" ,4 ) == 0 ) sscanf( line_buffer , "Mode :: %d" , mode ) ;
       if( strncmp( line_buffer , "Static molecule" , 15 ) == 0 ) sscanf( line_buffer , "Static molecule :: %s" , static_file_name ) ;
       if( strncmp( line_buffer , "Mobile molecule" , 15 ) == 0 ) sscanf( line_buffer , "Mobile molecule :: %s" , mobile_file_name ) ;
       if( strncmp( line_buffer , "Output file name" , 16 ) == 0 ) sscanf( line_buffer , "Output file name :: %s" , output_file_name ) ;
@@ -450,16 +450,58 @@ int main( int argc , char *argv[] ) {
   /* Do these things first so that bad inputs will be caught soonest */
 
   /* Read in Structures from pdb files */
+  if(mode==0)
+  {
     Static_Structure = read_pdb_to_structure( static_file_name ) ;
     Mobile_Structure = read_pdb_to_structure( mobile_file_name ) ;
-  
-  if( Mobile_Structure.length > Static_Structure.length ) {
+    if( Mobile_Structure.length > Static_Structure.length ) {
     printf( "WARNING\n" ) ;
     printf( "The mobile molecule has more residues than the static\n" ) ;
     printf( "Are you sure you have the correct molecules?\n" ) ;
     printf( "Continuing anyway\n" ) ;
   }
   
+  }
+  else if(mode==1)
+  {
+    Static_Structure = read_pdb_to_structure( static_file_name ) ;
+    DNA_Mobile_Structure = read_pdb_to_dna_structure( mobile_file_name ) ;
+    if( DNA_Mobile_Structure.length > Static_Structure.length ) {
+    printf( "WARNING\n" ) ;
+    printf( "The mobile molecule has more residues than the static\n" ) ;
+    printf( "Are you sure you have the correct molecules?\n" ) ;
+    printf( "Continuing anyway\n" ) ;
+  }
+  }
+  else if(mode==2)
+  {
+    DNA_Static_Structure = read_pdb_to_dna_structure( static_file_name ) ;
+    Mobile_Structure = read_pdb_to_structure( mobile_file_name ) ;
+    if( Mobile_Structure.length > DNA_Static_Structure.length ) {
+    printf( "WARNING\n" ) ;
+    printf( "The mobile molecule has more residues than the static\n" ) ;
+    printf( "Are you sure you have the correct molecules?\n" ) ;
+    printf( "Continuing anyway\n" ) ;
+  }
+  }
+  else if(mode==3)
+  {
+    DNA_Static_Structure = read_pdb_to_dna_structure( static_file_name ) ;
+    DNA_Mobile_Structure = read_pdb_to_dna_structure( mobile_file_name ) ;
+    if( DNA_Mobile_Structure.length > DNA_Static_Structure.length ) {
+    printf( "WARNING\n" ) ;
+    printf( "The mobile molecule has more residues than the static\n" ) ;
+    printf( "Are you sure you have the correct molecules?\n" ) ;
+    printf( "Continuing anyway\n" ) ;
+  }
+  }
+  else
+  {
+    printf("Wrong mode of operation!\n");
+    exit( EXIT_FAILURE ) ;
+  }
+
+
 /************/
 
   /* Get angles */
@@ -471,7 +513,7 @@ int main( int argc , char *argv[] ) {
 
   /* Assign charges */
 
-  if( electrostatics == 1 ) {
+  if( electrostatics == 1 && mode==0) {
     printf( "Assigning charges\n" ) ;
     assign_charges( Static_Structure );
     assign_charges( Mobile_Structure ) ;
