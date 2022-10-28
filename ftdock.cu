@@ -163,10 +163,13 @@ int main( int argc , char *argv[] ) {
   /* Structures */
 
   struct Structure	Static_Structure , Mobile_Structure ;
+  struct DNA_Structure DNA_Static_Structure, DNA_Mobile_Structure;
   struct Structure	Origin_Static_Structure , Origin_Mobile_Structure ;
+  struct DNA_Structure	DNA_Origin_Static_Structure , DNA_Origin_Mobile_Structure ;
   struct Structure	Rotated_at_Origin_Mobile_Structure ;
+  struct DNA_Structure	DNA_Rotated_at_Origin_Mobile_Structure ;
 
-
+  int mode=0;
 
   /* Grid stuff */
 
@@ -352,8 +355,17 @@ int main( int argc , char *argv[] ) {
                           default_global_grid_size = "(user defined calculated)" ;
                           sscanf( argv[i] , "%f" , &reverse_calculated_one_span ) ;
                         } else {
+                           if( strcmp( argv[i] , "-mode" ) == 0 ) {
+                            i ++ ;
+                            if( ( i == argc ) || ( strncmp( argv[i] , "-" , 1 ) == 0 ) ) {
+                            printf( "Bad command line\n" ) ;
+                            exit( EXIT_FAILURE ) ;
+                          }
+                         sscanf( argv[i] , "%d" , &mode ) ;
+                      }  else{
                           printf( "Bad command line\n" ) ;
                           exit( EXIT_FAILURE ) ;
+                      }
                         }
                       }
                     }
@@ -438,9 +450,9 @@ int main( int argc , char *argv[] ) {
   /* Do these things first so that bad inputs will be caught soonest */
 
   /* Read in Structures from pdb files */
-  Static_Structure = read_pdb_to_structure( static_file_name ) ;
-  Mobile_Structure = read_pdb_to_structure( mobile_file_name ) ;
-
+    Static_Structure = read_pdb_to_structure( static_file_name ) ;
+    Mobile_Structure = read_pdb_to_structure( mobile_file_name ) ;
+  
   if( Mobile_Structure.length > Static_Structure.length ) {
     printf( "WARNING\n" ) ;
     printf( "The mobile molecule has more residues than the static\n" ) ;
@@ -604,6 +616,7 @@ int main( int argc , char *argv[] ) {
   fprintf( ftdock_file, "\nGlobal Scan\n" ) ;
 
   fprintf( ftdock_file, "\nCommand line controllable values\n" ) ;
+  fprintf(ftdock_file,  "Mode                               :: %d\n",mode);
   fprintf( ftdock_file, "Static molecule                    :: %s\n" , static_file_name ) ;
   fprintf( ftdock_file, "Mobile molecule                    :: %s\n" , mobile_file_name ) ;
   fprintf( ftdock_file, "Output file name                   :: %s\n" , output_file_name ) ;

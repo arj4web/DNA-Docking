@@ -86,9 +86,16 @@ struct Nucleic_Acid
     char nucleicAcid_name[4];
     char chainID[2];
     char nuCode[6];
+	char olc[2];
     int size;
     struct Atom *atom;
 };
+struct DNA_Structure{
+    char name[256];
+    int length;
+    struct Nucleic_Acid *nucleotide;
+};
+
 
 struct Structure{
 	char			ident[256] ;
