@@ -465,7 +465,46 @@ struct Structure duplicate_structure( struct Structure This_Structure ) {
 /************/
 
 }
+struct DNA_Structure duplicate_dna_structure( struct DNA_Structure This_Structure ) {
 
+/************/
+
+  /* Variables */
+  struct DNA_Structure	New_Structure ;
+
+  /* Counters */
+  int		residue , atom ;
+
+/************/
+
+  if( ( New_Structure.nucleotide = ( struct Nucleic_Acid * ) malloc ( ( This_Structure.length + 1 ) * sizeof_Amino_Acid ) ) == NULL ) {
+    GENERAL_MEMORY_PROBLEM
+  }
+
+  strcpy( New_Structure.name , This_Structure.name ) ;
+  New_Structure.length = This_Structure.length ;
+
+  for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+
+    New_Structure.nucleotide[residue] = This_Structure.nucleotide[residue] ;
+
+    if( ( New_Structure.nucleotide[residue].Atom = ( struct Atom * ) malloc ( ( This_Structure.nucleotide[residue].size + 1 ) * sizeof_Atom ) ) == NULL ) {
+      GENERAL_MEMORY_PROBLEM
+    }
+
+    for( atom = 1 ; atom <= This_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      New_Structure.nucleotide[residue].Atom[atom] = This_Structure.nucleotide[residue].Atom[atom] ;
+
+    }
+
+  }
+
+  return New_Structure ;
+
+/************/
+
+}
 
 
 /************************/
@@ -578,7 +617,71 @@ struct Structure translate_structure_onto_origin( struct Structure This_Structur
 
 }
 
+struct DNA_Structure translate_dna_structure_onto_origin( struct DNA_Structure This_Structure ) {
 
+/************/
+
+  /* Variables */
+  struct DNA_Structure	New_Structure ;
+
+  float			average_x , average_y , average_z ;
+
+  /* Counters */
+  int		residue , atom , total_atoms ;
+
+/************/
+
+  New_Structure = duplicate_dna_structure( This_Structure ) ;
+
+/************/
+
+  /* Find current centre */
+
+  total_atoms = 0 ;
+
+  average_x = 0 ;
+  average_y = 0 ;
+  average_z = 0 ;
+
+  for( residue = 1 ; residue <= New_Structure.length ; residue ++ ) {
+
+    for( atom = 1 ; atom <= New_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      total_atoms ++ ;
+
+      average_x += New_Structure.nucleotide[residue].Atom[atom].coord[1] ;
+      average_y += New_Structure.nucleotide[residue].Atom[atom].coord[2] ;
+      average_z += New_Structure.nucleotide[residue].Atom[atom].coord[3] ;
+
+    }
+
+  }
+
+  average_x = average_x / (float)total_atoms ;
+  average_y = average_y / (float)total_atoms ;
+  average_z = average_z / (float)total_atoms ;
+
+/************/
+
+  /* Translate */
+
+  for( residue = 1 ; residue <= New_Structure.length ; residue ++ ) {
+
+    for( atom = 1 ; atom <= New_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      New_Structure.nucleotide[residue].Atom[atom].coord[1] -= average_x ;
+      New_Structure.nucleotide[residue].Atom[atom].coord[2] -= average_y ;
+      New_Structure.nucleotide[residue].Atom[atom].coord[3] -= average_z ;
+
+    }
+
+  }
+
+  return New_Structure ;
+
+/************/
+
+}
 
 /************************/
 
@@ -776,7 +879,6 @@ float radius_of_structure( struct Structure This_Structure ) {
 
 
 /************************/
-
 
 
 float total_span_of_structures( struct Structure Structure_1 , struct Structure Structure_2 ) {

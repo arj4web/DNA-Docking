@@ -524,11 +524,11 @@ int main( int argc , char *argv[] ) {
 /************/
 
   /* Store new structures centered on Origin */
-
-  Origin_Static_Structure = translate_structure_onto_origin( Static_Structure ) ;
-  Origin_Mobile_Structure = translate_structure_onto_origin( Mobile_Structure ) ;
-  /* Free some memory */
-
+if (mode==0)
+{
+    Origin_Static_Structure = translate_structure_onto_origin( Static_Structure ) ;
+    Origin_Mobile_Structure = translate_structure_onto_origin( Mobile_Structure ) ;
+     
   for( i = 1 ; i <= Static_Structure.length ; i ++ ) {
     free( Static_Structure.Residue[i].Atom ) ;
   }
@@ -538,12 +538,66 @@ int main( int argc , char *argv[] ) {
     free( Mobile_Structure.Residue[i].Atom ) ;
   }
   free( Mobile_Structure.Residue ) ;
+   grid_span = total_span_of_structures( Origin_Static_Structure , Origin_Mobile_Structure ) ;
+}
+else if(mode==1)
+{
+    Origin_Static_Structure = translate_structure_onto_origin( Static_Structure ) ;
+    DNA_Origin_Mobile_Structure = translate_dna_structure_onto_origin( DNA_Mobile_Structure ) ;
+
+  for( i = 1 ; i <= Static_Structure.length ; i ++ ) {
+    free( Static_Structure.Residue[i].Atom ) ;
+  }
+  free( Static_Structure.Residue ) ;
+
+  for( i = 1 ; i <= DNA_Mobile_Structure.length ; i ++ ) {
+    free( DNA_Mobile_Structure.nucleotide[i].Atom ) ;
+  }
+  free( DNA_Mobile_Structure.nucleotide ) ;
+  
+}
+
+else if(mode==2)
+{
+    DNA_Origin_Static_Structure = translate_dna_structure_onto_origin( DNA_Static_Structure ) ;
+    Origin_Mobile_Structure = translate_structure_onto_origin( Mobile_Structure ) ;
+
+  for( i = 1 ; i <= DNA_Static_Structure.length ; i ++ ) {
+    free( DNA_Static_Structure.nucleotide[i].Atom ) ;
+  }
+  free( DNA_Static_Structure.nucleotide ) ;
+
+  for( i = 1 ; i <= Mobile_Structure.length ; i ++ ) {
+    free( Mobile_Structure.Residue[i].Atom ) ;
+  }
+  free( Mobile_Structure.Residue ) ;
+}
+
+else{ 
+    DNA_Origin_Static_Structure = translate_dna_structure_onto_origin( DNA_Static_Structure ) ;
+    DNA_Origin_Mobile_Structure = translate_dna_structure_onto_origin( DNA_Mobile_Structure ) ;
+
+    for( i = 1 ; i <= DNA_Static_Structure.length ; i ++ ) {
+    free( DNA_Static_Structure.nucleotide[i].Atom ) ;
+  }
+  free( DNA_Static_Structure.nucleotide ) ;
+  for( i = 1 ; i <= DNA_Mobile_Structure.length ; i ++ ) {
+    free( DNA_Mobile_Structure.nucleotide[i].Atom ) ;
+  }
+  free( DNA_Mobile_Structure.nucleotide ) ;
+
+
+}
+
+  /* Free some memory */
+
+
 
 /************/
 
   /* Calculate Grid stuff */
 
-  grid_span = total_span_of_structures( Origin_Static_Structure , Origin_Mobile_Structure ) ;
+ 
 
   if( calculate == 1 ) {
     printf( "Using automatic calculation for grid size\n" ) ;

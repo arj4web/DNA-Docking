@@ -151,6 +151,7 @@ extern void write_structure_to_pdb( struct Structure This_Structure , char *pdb_
 extern struct Structure duplicate_structure( struct Structure This_Structure ) ;
 extern struct Structure translate_structure( struct Structure This_Structure , float x_shift , float y_shift , float z_shift ) ;
 extern struct Structure translate_structure_onto_origin( struct Structure This_Structure ) ;
+extern struct DNA_Structure translate_dna_structure_onto_origin( struct DNA_Structure This_Structure ) ;
 extern struct Structure rotate_structure( struct Structure This_Structure , int z_twist , int theta , int phi ) ;
 extern struct Structure merge_structures( struct Structure Structure_One , struct Structure Structure_Two ) ;
 extern float radius_of_structure( struct Structure This_Structure ) ;
