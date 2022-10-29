@@ -164,6 +164,7 @@ extern struct Angle generate_range_of_angles( int angle_step , int angle_range ,
 extern __device__ __host__ int gord( float position , float grid_span , int grid_size ) ;
 extern __device__ float pythagoras( float x1 , float y1 , float z1 , float x2 , float y2 , float z2 ) ;
 extern void discretise_structure( struct Structure This_Structure , float grid_span , int grid_size , cufftReal *grid,int size1) ;
+extern void discretise_dna_structure( struct DNA_Structure This_Structure , float grid_span , int grid_size , cufftReal *grid,int size1) ;
 extern void __global__ surface_grid( float grid_span , int grid_size , cufftReal *grid , float surface , float internal_value ) ;
 
 extern void assign_charges( struct Structure This_Structure ) ;

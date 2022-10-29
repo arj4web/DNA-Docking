@@ -602,15 +602,6 @@ else{
 
 }
 
-  /* Free some memory */
-
-
-
-/************/
-
-  /* Calculate Grid stuff */
-
- 
 
   if( calculate == 1 ) {
     printf( "Using automatic calculation for grid size\n" ) ;
@@ -689,14 +680,15 @@ else{
   printf( "Setting up Static Structure\n" ) ;
 
   /* Discretise and surface the Static Structure (need do only once) */
-  
-  discretise_structure( Origin_Static_Structure , grid_span , global_grid_size , static_grid,size1);
+
+  if(mode<2)discretise_structure( Origin_Static_Structure , grid_span , global_grid_size , static_grid,size1);
+  else discretise_dna_structure(DNA_Origin_Static_Structure,grid_span , global_grid_size , static_grid,size1);
   printf( "  surfacing grid\n") ;
   dim3 numblocks(((global_grid_size-1)/threadperblock3D.x)+1,((global_grid_size-1)/threadperblock3D.y)+1,((global_grid_size-1)/threadperblock3D.z)+1);
   surface_grid<<<numblocks,threadperblock3D>>>( grid_span , global_grid_size , static_grid , surface , internal_value) ;
   cudaDeviceSynchronize();
   /* Calculate electic field at all grid nodes (need do only once) */
-  if( electrostatics == 1 ) {
+  if( electrostatics == 1 &&mode==0) {
     electric_field( Origin_Static_Structure , grid_span , global_grid_size , static_elec_grid ) ;
     electric_field_zero_core<<<numblocks,threadperblock3D>>>( global_grid_size , static_elec_grid , static_grid , internal_value) ;
     cudaDeviceSynchronize();
