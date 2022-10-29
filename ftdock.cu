@@ -538,7 +538,9 @@ if (mode==0)
     free( Mobile_Structure.Residue[i].Atom ) ;
   }
   free( Mobile_Structure.Residue ) ;
-   grid_span = total_span_of_structures( Origin_Static_Structure , Origin_Mobile_Structure ) ;
+  float r1=radius_of_structure(Origin_Static_Structure);
+  float r2=radius_of_structure(Origin_Mobile_Structure);
+   grid_span = total_span_of_structures( r1 , r2 ) ;
 }
 else if(mode==1)
 {
@@ -554,6 +556,9 @@ else if(mode==1)
     free( DNA_Mobile_Structure.nucleotide[i].Atom ) ;
   }
   free( DNA_Mobile_Structure.nucleotide ) ;
+    float r1=radius_of_structure(Origin_Static_Structure);
+  float r2=radius_of_dna_structure(DNA_Origin_Mobile_Structure);
+   grid_span = total_span_of_structures( r1 , r2 ) ;
   
 }
 
@@ -571,6 +576,10 @@ else if(mode==2)
     free( Mobile_Structure.Residue[i].Atom ) ;
   }
   free( Mobile_Structure.Residue ) ;
+     float r1=radius_of_dna_structure(DNA_Origin_Static_Structure);
+  float r2=radius_of_structure(Mobile_Structure);
+   grid_span = total_span_of_structures( r1 , r2 ) ;
+  
 }
 
 else{ 
@@ -585,7 +594,11 @@ else{
     free( DNA_Mobile_Structure.nucleotide[i].Atom ) ;
   }
   free( DNA_Mobile_Structure.nucleotide ) ;
-
+  
+     float r1=radius_of_dna_structure(DNA_Origin_Static_Structure);
+       float r2=radius_of_dna_structure(DNA_Origin_Mobile_Structure);
+   grid_span = total_span_of_structures( r1 , r2 ) ;
+  
 
 }
 

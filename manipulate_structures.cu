@@ -875,14 +875,45 @@ float radius_of_structure( struct Structure This_Structure ) {
 /************/
 
 }
+float radius_of_dna_structure( struct DNA_Structure This_Structure ) {
+
+/************/
+
+  /* Variables */
+  float		present , largest ;
+
+  /* Counters */
+  int	residue , atom ;
+
+/************/
+
+  largest = 0 ;
+
+  for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+
+    for( atom = 1 ; atom <= This_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      present = This_Structure.nucleotide[residue].Atom[atom].coord[1] * This_Structure.nucleotide[residue].Atom[atom].coord[1] + This_Structure.nucleotide[residue].Atom[atom].coord[2] * This_Structure.nucleotide[residue].Atom[atom].coord[2] + This_Structure.nucleotide[residue].Atom[atom].coord[3] * This_Structure.nucleotide[residue].Atom[atom].coord[3] ;
+
+      if( present > largest ) largest = present ;
+
+    }
+
+  }
+
+  return sqrt( largest ) ;
+
+/************/
+
+}
 
 
 
 /************************/
 
 
-float total_span_of_structures( struct Structure Structure_1 , struct Structure Structure_2 ) {
+float total_span_of_structures( float Radius_Structure_1 , float Radius_Structure_2 ) {
 
-  return  1 + ( ( radius_of_structure( Structure_1 ) + radius_of_structure( Structure_2 ) ) * 2 ) ;
+  return  1 + ( ( Radius_Structure_1+ Radius_Structure_2 ) * 2 ) ;
 
 }

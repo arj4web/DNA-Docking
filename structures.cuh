@@ -155,7 +155,8 @@ extern struct DNA_Structure translate_dna_structure_onto_origin( struct DNA_Stru
 extern struct Structure rotate_structure( struct Structure This_Structure , int z_twist , int theta , int phi ) ;
 extern struct Structure merge_structures( struct Structure Structure_One , struct Structure Structure_Two ) ;
 extern float radius_of_structure( struct Structure This_Structure ) ;
-extern float total_span_of_structures( struct Structure Structure_1 , struct Structure Structure_2 ) ;
+extern float radius_of_dna_structure( struct DNA_Structure This_Structure ) ;
+extern float total_span_of_structures( float Radius_Structure_1 , float Radius_Structure_2 ) ;
 
 extern struct Angle generate_global_angles( int angle_step ) ;
 extern struct Angle generate_range_of_angles( int angle_step , int angle_range , int z_twist , int theta , int phi ) ;
