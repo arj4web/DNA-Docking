@@ -86,6 +86,116 @@ if(residue<ydim){
     }
   }
 }
+__global__ void interaction_dna_grid(cufftReal *grid, Nucleic_Acid *nucleotide,float grid_span , int grid_size ,int steps,int ydim)
+{
+  int residue=threadIdx.y+(blockDim.y*blockIdx.y);
+  int atom=threadIdx.x+(blockDim.x*blockIdx.x);
+    int x_step , y_step , z_step ;
+
+     float		x_centre , y_centre , z_centre ;
+
+  /* Variables */
+
+     float         distance,one_span;
+     one_span = grid_span / (float)grid_size ;
+
+     distance = 1.8 ;
+
+if(residue<ydim){
+
+    if((residue>0)&&(atom>0)&&(atom<=nucleotide[residue].size))
+    {
+
+        
+        int x = gord(nucleotide[residue].Atom[atom].coord[1] , grid_span , grid_size );
+        int y = gord(nucleotide[residue].Atom[atom].coord[2] , grid_span , grid_size );
+        int z = gord(nucleotide[residue].Atom[atom].coord[3] , grid_span , grid_size );
+
+        for( x_step = max( ( x - steps ) , 0 ) ; x_step <= min( ( x + steps ) , ( grid_size - 1 ) ) ; x_step ++ ) {
+
+            x_centre  = gcentre( x_step , grid_span , grid_size ) ;
+
+        for( y_step = max( ( y - steps ) , 0 ) ; y_step <= min( ( y + steps ) , ( grid_size - 1 ) ) ; y_step ++ ) {
+
+          y_centre  = gcentre( y_step , grid_span , grid_size ) ;
+
+          for( z_step = max( ( z - steps ) , 0 ) ; z_step <= min( ( z + steps ) , ( grid_size - 1 ) ) ; z_step ++ ) {
+
+            z_centre  = gcentre( z_step , grid_span , grid_size ) ;
+
+            if( pythagoras(nucleotide[residue].Atom[atom].coord[1] ,nucleotide[residue].Atom[atom].coord[2] ,nucleotide[residue].Atom[atom].coord[3] , x_centre , y_centre , z_centre ) < distance ) grid[gaddress(x_step,y_step,z_step,grid_size)] = (cufftReal)1 ;
+
+          }
+        }
+     
+
+
+    }
+
+    }
+  }
+}
+
+void discretise_dna_structure( struct DNA_Structure This_Structure , float grid_span , int grid_size , cufftReal *grid, int size1 ) {
+
+/************/
+
+  /* Counters */
+
+ 
+
+  /* Co-ordinates */
+
+
+  int	steps;
+
+
+  /* Variables */
+
+  float         distance , one_span ;
+
+/************/
+
+  one_span = grid_span / (float)grid_size ;
+
+  distance = 1.8 ;
+
+/************/
+dim3 numblocks(((grid_size-1)/threadperblock3D.x)+1,((grid_size-1)/threadperblock3D.y)+1,((grid_size-1)/threadperblock3D.z)+1);
+
+
+
+zero1_interaction_grid<<<numblocks,threadperblock3D>>>(grid,grid_size);
+cudaDeviceSynchronize();
+
+
+/************/
+struct Nucleic_Acid *nucleotide,*d_nucleotide;
+nucleotide = (struct Nucleic_Acid*)malloc((This_Structure.length+1)*sizeof(Amino_Acid));
+int a=0;
+for (int i = 1; i <=This_Structure.length; i++)
+{
+  nucleotide[i]=This_Structure.nucleotide[i];
+  cudaMalloc(&nucleotide[i].Atom,(This_Structure.nucleotide[i].size+1)*sizeof(struct Atom));
+  cudaMemcpy(nucleotide[i].Atom,This_Structure.nucleotide[i].Atom,(This_Structure.nucleotide[i].size+1)*sizeof(struct Atom),cudaMemcpyHostToDevice);
+  a=max(a,This_Structure.nucleotide[i].size);
+  
+}
+cudaMalloc((void**)&d_nucleotide,(This_Structure.length+1)*sizeof(struct Amino_Acid));
+cudaMemcpy(d_nucleotide,nucleotide,(This_Structure.length+1)*sizeof(struct Amino_Acid),cudaMemcpyHostToDevice);
+
+  dim3 numblock1((a/threadperblock2D.x)+1,(This_Structure.length/threadperblock2D.y)+1);
+  steps = (int)( ( distance / one_span ) + 1.5 ) ;
+  interaction_dna_grid<<<numblock1,threadperblock2D>>>(grid, d_nucleotide, grid_span,grid_size,steps,This_Structure.length+1);
+  cudaDeviceSynchronize();
+  cudaFree(d_nucleotide);
+  
+  free(nucleotide);
+  /************/
+
+  return ;
+
+}
 
 void discretise_structure( struct Structure This_Structure , float grid_span , int grid_size , cufftReal *grid, int size1 ) {
 

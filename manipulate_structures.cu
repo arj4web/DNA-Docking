@@ -199,11 +199,216 @@ struct Structure read_pdb_to_structure( char *pdb_file_name ) {
 
 }
 
+struct DNA_Structure read_pdb_to_dna_structure( char *pdb_file_name ) {
 
+/************/
+
+  /* Variables */
+
+  /* Counters */
+  int	n_nucleotides ;	/* number of nucleotides */
+  int	nuc_size ;	/* number of atoms in single residue */
+
+  /* File stuff */
+  FILE	*pdb_file ;
+  char	line_buffer[100] ;
+
+  /* What the data is going into */
+  struct DNA_Structure		This_Structure ;
+
+  /* Variables from the PDB file */
+  int	serial ;
+  char		atom_name[5] ;
+  char		nucleicAcid_name[4] ;
+  char		chainID[2] ;
+  char		nuCode[6] ;
+  float		coord_x , coord_y , coord_z ;
+  float		occupancy, temp_factor ;
+  char		olc[2] ;
+
+  /* Comparison values */
+  char	present_nuCode[6] ;
+
+/************/
+
+  setvbuf( stdout , (char *)NULL , _IONBF , 0 ) ;
+
+  /* File handling */
+
+  /* Open file */
+  printf( "  reading parsed pdb file: %s\n", pdb_file_name ) ;
+  if( ( pdb_file = fopen( pdb_file_name, "r" ) ) == NULL ) {
+    printf( "This file does not exist here, or is unreadable.\nDying\n\n" ) ;
+    exit( EXIT_FAILURE ) ;
+  }
+
+/************/
+
+  /* Initialisations */
+
+  /* Counters */
+  n_nucleotides = 0 ;
+  nuc_size = 0 ;
+
+  /* Comparison values */
+  strcpy( present_nuCode , ">" ) ;
+
+  /* Memory allocation */
+  if( ( This_Structure.nucleotide = ( struct Nucleic_Acid * ) malloc ( sizeof_Amino_Acid ) ) == NULL ) {
+    GENERAL_MEMORY_PROBLEM
+  }
+
+/************/
+
+  /* Read PDB file */
+
+  /* The Atoms */
+
+  while( fgets( line_buffer, 85, pdb_file ) ) {
+
+    if( strncmp( line_buffer, "ATOM", 4 ) == 0 ) {
+
+      /* Have an ATOM */
+
+      /* Get Values */
+
+      /* the following may seem silly, but sscanf convention means that two
+         float fields with no white space between them, where the first is
+         less than the maximum field width, mucks up everything.
+      */
+
+      sscanf( line_buffer +  6 , "%5d" , &serial ) ;
+      sscanf( line_buffer + 30 , "%8f" , &coord_x ) ;
+      sscanf( line_buffer + 38 , "%8f" , &coord_y ) ;
+      sscanf( line_buffer + 46 , "%8f" , &coord_z ) ;
+      sscanf( line_buffer + 54 , "%6f" , &occupancy ) ;
+      sscanf( line_buffer + 60 , "%6f" , &temp_factor ) ;
+      
+
+      strncpy( atom_name,		line_buffer+12,	4 ) ;
+      strncpy( nucleicAcid_name,		line_buffer+17,	3 ) ;
+      strncpy( chainID,			line_buffer+21,	1 ) ;
+      strncpy( nuCode,	line_buffer+22,	5 ) ;
+      strncpy( olc,			line_buffer+77,	1 ) ;
+
+      strncpy( atom_name + 4,		"\0", 1 ) ;
+      strncpy( nucleicAcid_name + 3,		"\0", 1 ) ;
+      strncpy( chainID + 1,		"\0", 1 ) ;
+      strncpy( nuCode + 5,	"\0", 1 ) ;
+      strncpy( olc + 1,			"\0", 1 ) ;
+
+/************/
+
+      /* New Residue */
+
+      if( strcmp( nuCode , present_nuCode ) != 0 ) {
+
+        /* have next residue */
+
+        /* Store old info */
+        This_Structure.nucleotide[n_nucleotides].size = nuc_size ;
+
+        /* Increment, Reset numbers */
+        n_nucleotides ++ ;
+        nuc_size = 0 ;
+
+        /* Memory management */
+        if( ( This_Structure.nucleotide = (struct Nucleic_Acid * ) realloc ( This_Structure.nucleotide, ( n_nucleotides + 1 ) * sizeof_Amino_Acid ) ) == NULL ) {
+          GENERAL_MEMORY_PROBLEM
+        }
+        if( ( This_Structure.nucleotide[n_nucleotides].Atom = ( struct Atom * ) malloc ( sizeof_Atom ) ) == NULL ) {
+          GENERAL_MEMORY_PROBLEM
+        }
+
+        /* Store new info */
+        strcpy( This_Structure.nucleotide[n_nucleotides].nuCode , nuCode );
+        strcpy( This_Structure.nucleotide[n_nucleotides].nucleicAcid_name ,           nucleicAcid_name ) ;
+        strcpy( This_Structure.nucleotide[n_nucleotides].chainID ,            chainID ) ;
+        strcpy( This_Structure.nucleotide[n_nucleotides].olc,                 olc ) ;
+        
+      }
+
+      strcpy( present_nuCode , nuCode ) ;
+
+/************/
+
+      /* Put Atoms into Structure */
+
+      nuc_size ++ ;
+
+      if( ( This_Structure.nucleotide[n_nucleotides].Atom = ( struct Atom * ) realloc ( This_Structure.nucleotide[n_nucleotides].Atom, ( nuc_size + 1 ) * sizeof_Atom ) ) == NULL ) {
+        GENERAL_MEMORY_PROBLEM
+      }
+
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].serial = serial ;
+      strcpy( This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].atom_name, atom_name ) ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].coord[1] = coord_x ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].coord[2] = coord_y ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].coord[3] = coord_z ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].occupancy = occupancy ;
+      This_Structure.nucleotide[n_nucleotides].Atom[nuc_size].temp_factor = temp_factor ;
+
+/************/
+
+    }
+
+  } /* got to end of pdb file */
+
+/************/
+
+  /* Clean up */
+
+  This_Structure.nucleotide[n_nucleotides].size = nuc_size ;
+  This_Structure.length = n_nucleotides ;
+  strcpy( This_Structure.name , pdb_file_name  );
+
+  /* Finish off */
+
+  fclose( pdb_file ) ;
+
+  return This_Structure ;
+
+}
 
 /************************/
 
+void write_dna_structure_to_pdb( struct DNA_Structure This_Structure , char *pdb_file_name ) {
 
+/************/
+
+  /* Variables */
+
+  /* Counters */
+  int	residue , atom ;
+
+  /* File stuff */
+  FILE		*pdb_file ;
+
+/************/
+
+  /* File handling */
+
+  /* Open file */
+  printf( "Writing file: %s\n", pdb_file_name ) ;
+  if( ( pdb_file = fopen( pdb_file_name, "w" ) ) == NULL ) {
+    printf( "This file could not be opened.\nDying\n\n" ) ;
+    exit(  EXIT_FAILURE ) ;
+  }
+
+/************/
+
+  /* Write PDB file */
+
+  for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+
+    for( atom = 1 ; atom <= This_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      fprintf( pdb_file, "ATOM  %5d %4s %3s %1s%5s   %8.3f%8.3f%8.3f%6.2f%6.2f              %1s\n", This_Structure.nucleotide[residue].Atom[atom].serial, This_Structure.nucleotide[residue].Atom[atom].atom_name, This_Structure.nucleotide[residue].nucleicAcid_name, This_Structure.nucleotide[residue].chainID, This_Structure.nucleotide[residue].nuCode, This_Structure.nucleotide[residue].Atom[atom].coord[1], This_Structure.nucleotide[residue].Atom[atom].coord[2], This_Structure.nucleotide[residue].Atom[atom].coord[3], This_Structure.nucleotide[residue].Atom[atom].occupancy, This_Structure.nucleotide[residue].Atom[atom].temp_factor, This_Structure.nucleotide[residue].olc) ;
+
+    }
+
+  }
+}
 
 void write_structure_to_pdb( struct Structure This_Structure , char *pdb_file_name ) {
 
@@ -296,7 +501,46 @@ struct Structure duplicate_structure( struct Structure This_Structure ) {
 /************/
 
 }
+struct DNA_Structure duplicate_dna_structure( struct DNA_Structure This_Structure ) {
 
+/************/
+
+  /* Variables */
+  struct DNA_Structure	New_Structure ;
+
+  /* Counters */
+  int		residue , atom ;
+
+/************/
+
+  if( ( New_Structure.nucleotide = ( struct Nucleic_Acid * ) malloc ( ( This_Structure.length + 1 ) * sizeof_Amino_Acid ) ) == NULL ) {
+    GENERAL_MEMORY_PROBLEM
+  }
+
+  strcpy( New_Structure.name , This_Structure.name ) ;
+  New_Structure.length = This_Structure.length ;
+
+  for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+
+    New_Structure.nucleotide[residue] = This_Structure.nucleotide[residue] ;
+
+    if( ( New_Structure.nucleotide[residue].Atom = ( struct Atom * ) malloc ( ( This_Structure.nucleotide[residue].size + 1 ) * sizeof_Atom ) ) == NULL ) {
+      GENERAL_MEMORY_PROBLEM
+    }
+
+    for( atom = 1 ; atom <= This_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      New_Structure.nucleotide[residue].Atom[atom] = This_Structure.nucleotide[residue].Atom[atom] ;
+
+    }
+
+  }
+
+  return New_Structure ;
+
+/************/
+
+}
 
 
 /************************/
@@ -409,7 +653,71 @@ struct Structure translate_structure_onto_origin( struct Structure This_Structur
 
 }
 
+struct DNA_Structure translate_dna_structure_onto_origin( struct DNA_Structure This_Structure ) {
 
+/************/
+
+  /* Variables */
+  struct DNA_Structure	New_Structure ;
+
+  float			average_x , average_y , average_z ;
+
+  /* Counters */
+  int		residue , atom , total_atoms ;
+
+/************/
+
+  New_Structure = duplicate_dna_structure( This_Structure ) ;
+
+/************/
+
+  /* Find current centre */
+
+  total_atoms = 0 ;
+
+  average_x = 0 ;
+  average_y = 0 ;
+  average_z = 0 ;
+
+  for( residue = 1 ; residue <= New_Structure.length ; residue ++ ) {
+
+    for( atom = 1 ; atom <= New_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      total_atoms ++ ;
+
+      average_x += New_Structure.nucleotide[residue].Atom[atom].coord[1] ;
+      average_y += New_Structure.nucleotide[residue].Atom[atom].coord[2] ;
+      average_z += New_Structure.nucleotide[residue].Atom[atom].coord[3] ;
+
+    }
+
+  }
+
+  average_x = average_x / (float)total_atoms ;
+  average_y = average_y / (float)total_atoms ;
+  average_z = average_z / (float)total_atoms ;
+
+/************/
+
+  /* Translate */
+
+  for( residue = 1 ; residue <= New_Structure.length ; residue ++ ) {
+
+    for( atom = 1 ; atom <= New_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      New_Structure.nucleotide[residue].Atom[atom].coord[1] -= average_x ;
+      New_Structure.nucleotide[residue].Atom[atom].coord[2] -= average_y ;
+      New_Structure.nucleotide[residue].Atom[atom].coord[3] -= average_z ;
+
+    }
+
+  }
+
+  return New_Structure ;
+
+/************/
+
+}
 
 /************************/
 
@@ -435,6 +743,37 @@ if(residue<ydim){
       Residue[residue].Atom[atom].coord[1] = post_theta_x * cos( 0.017453293 * phi ) - post_theta_y * sin( 0.017453293 * phi ) ;
       Residue[residue].Atom[atom].coord[2] = post_theta_x * sin( 0.017453293 * phi ) + post_theta_y * cos( 0.017453293 * phi ) ;
       Residue[residue].Atom[atom].coord[3] = post_theta_z ;
+
+  
+  }
+
+  }
+
+
+}
+
+__global__ void RotateDNAonGPU(Nucleic_Acid *nucleotide,int z_twist , int theta , int phi,int ydim )
+{
+  int residue=threadIdx.y+(blockDim.y*blockIdx.y);
+  int atom=threadIdx.x+(blockDim.x*blockIdx.x);
+  float			post_z_twist_x , post_z_twist_y , post_z_twist_z ;
+  float			post_theta_x , post_theta_y , post_theta_z ;
+if(residue<ydim){
+  if((residue>0)&&(atom>0)&&(atom<=nucleotide[residue].size)){
+      /* Perform Z axis twist */
+      post_z_twist_x = nucleotide[residue].Atom[atom].coord[1] * cos( 0.017453293 * z_twist ) - nucleotide[residue].Atom[atom].coord[2] * sin( 0.017453293 * z_twist ) ;
+      post_z_twist_y = nucleotide[residue].Atom[atom].coord[1] * sin( 0.017453293 * z_twist ) + nucleotide[residue].Atom[atom].coord[2] * cos( 0.017453293 * z_twist ) ;
+      post_z_twist_z = nucleotide[residue].Atom[atom].coord[3] ;
+
+      /* Perform theta twist along plane of x-z */
+      post_theta_x = post_z_twist_z * sin( 0.017453293 * theta ) + post_z_twist_x * cos( 0.017453293 * theta ) ; 
+      post_theta_y = post_z_twist_y ;
+      post_theta_z = post_z_twist_z * cos( 0.017453293 * theta ) - post_z_twist_x * sin( 0.017453293 * theta ) ; 
+
+      /* Perform phi twist around z axis */
+      nucleotide[residue].Atom[atom].coord[1] = post_theta_x * cos( 0.017453293 * phi ) - post_theta_y * sin( 0.017453293 * phi ) ;
+      nucleotide[residue].Atom[atom].coord[2] = post_theta_x * sin( 0.017453293 * phi ) + post_theta_y * cos( 0.017453293 * phi ) ;
+      nucleotide[residue].Atom[atom].coord[3] = post_theta_z ;
 
   
   }
@@ -482,6 +821,52 @@ int a=0;
   }
   free(Residue);
   cudaFree(d_Residue);
+
+  return New_Structure ;
+
+/************/
+
+}
+
+struct DNA_Structure rotate_dna_structure( struct DNA_Structure This_Structure , int z_twist , int theta , int phi ) {
+
+/************/
+
+  /* Variables */
+  struct DNA_Structure	New_Structure ;
+
+/************/
+int a=0;
+  New_Structure = duplicate_dna_structure( This_Structure ) ;
+  struct Nucleic_Acid *nucleotide,*d_nucleotide;
+  nucleotide = (struct Nucleic_Acid*)malloc((This_Structure.length+1)*sizeof(Amino_Acid));
+  for (int i = 1; i <=This_Structure.length; i++)
+  {
+    
+    nucleotide[i]=This_Structure.nucleotide[i];
+    cudaMalloc((void**)&nucleotide[i].Atom,(This_Structure.nucleotide[i].size+1)*sizeof(struct Atom));
+    cudaMemcpy(nucleotide[i].Atom,This_Structure.nucleotide[i].Atom,(This_Structure.nucleotide[i].size+1)*sizeof(struct Atom),cudaMemcpyHostToDevice);
+    a=max(a,This_Structure.nucleotide[i].size);
+    
+  }
+  cudaMalloc((void**)&d_nucleotide,(This_Structure.length+1)*sizeof(struct Nucleic_Acid));
+  cudaMemcpy(d_nucleotide,nucleotide,(This_Structure.length+1)*sizeof(struct Nucleic_Acid),cudaMemcpyHostToDevice);
+
+  dim3 numblocks((a/threadperblock2D.x)+1,(This_Structure.length/threadperblock2D.y)+1);
+  RotateDNAonGPU<<<numblocks,threadperblock2D>>>(d_nucleotide,z_twist,phi,theta,This_Structure.length+1);
+  cudaDeviceSynchronize();
+
+/************/
+  cudaMemcpy(nucleotide,d_nucleotide,(This_Structure.length+1)*sizeof(struct Nucleic_Acid),cudaMemcpyDeviceToHost);
+  for (int i = 1; i <= This_Structure.length; i++)
+  {
+ 
+    cudaMemcpy(New_Structure.nucleotide[i].Atom,nucleotide[i].Atom,(This_Structure.nucleotide[i].size+1)*sizeof(struct Atom),cudaMemcpyDeviceToHost);
+    cudaFree(nucleotide[i].Atom);
+  
+  }
+  free(nucleotide);
+  cudaFree(d_nucleotide);
 
   return New_Structure ;
 
@@ -603,15 +988,45 @@ float radius_of_structure( struct Structure This_Structure ) {
 /************/
 
 }
+float radius_of_dna_structure( struct DNA_Structure This_Structure ) {
+
+/************/
+
+  /* Variables */
+  float		present , largest ;
+
+  /* Counters */
+  int	residue , atom ;
+
+/************/
+
+  largest = 0 ;
+
+  for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+
+    for( atom = 1 ; atom <= This_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      present = This_Structure.nucleotide[residue].Atom[atom].coord[1] * This_Structure.nucleotide[residue].Atom[atom].coord[1] + This_Structure.nucleotide[residue].Atom[atom].coord[2] * This_Structure.nucleotide[residue].Atom[atom].coord[2] + This_Structure.nucleotide[residue].Atom[atom].coord[3] * This_Structure.nucleotide[residue].Atom[atom].coord[3] ;
+
+      if( present > largest ) largest = present ;
+
+    }
+
+  }
+
+  return sqrt( largest ) ;
+
+/************/
+
+}
 
 
 
 /************************/
 
 
+float total_span_of_structures( float Radius_Structure_1 , float Radius_Structure_2 ) {
 
-float total_span_of_structures( struct Structure Structure_1 , struct Structure Structure_2 ) {
-
-  return  1 + ( ( radius_of_structure( Structure_1 ) + radius_of_structure( Structure_2 ) ) * 2 ) ;
+  return  1 + ( ( Radius_Structure_1+ Radius_Structure_2 ) * 2 ) ;
 
 }

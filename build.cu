@@ -234,8 +234,10 @@ int main( int argc , char *argv[] ) {
 /************/
 
   /* Calculate Grid stuff */
+  float r1=radius_of_structure(Origin_Static_Structure);
+  float r2=radius_of_structure(Origin_Mobile_Structure);
 
-  grid_span = total_span_of_structures( Origin_Static_Structure , Origin_Mobile_Structure ) ;
+  grid_span = total_span_of_structures( r1,r2) ;
 
   one_span = grid_span / (float)grid_size ;
 

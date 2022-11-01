@@ -86,9 +86,16 @@ struct Nucleic_Acid
     char nucleicAcid_name[4];
     char chainID[2];
     char nuCode[6];
+	char olc[2];
     int size;
-    struct Atom *atom;
+    struct Atom *Atom;
 };
+struct DNA_Structure{
+    char name[256];
+    int length;
+    struct Nucleic_Acid *nucleotide;
+};
+
 
 struct Structure{
 	char			ident[256] ;
@@ -139,22 +146,27 @@ struct Matrix{
 /************/
 
 extern struct Structure read_pdb_to_structure( char *pdb_file_name ) ;
+extern struct DNA_Structure read_pdb_to_dna_structure( char *pdb_file_name ) ;
 extern void write_structure_to_pdb( struct Structure This_Structure , char *pdb_file_name ) ;
+extern void write_dna_structure_to_pdb( struct DNA_Structure This_Structure , char *pdb_file_name ) ;
 extern struct Structure duplicate_structure( struct Structure This_Structure ) ;
 extern struct Structure translate_structure( struct Structure This_Structure , float x_shift , float y_shift , float z_shift ) ;
 extern struct Structure translate_structure_onto_origin( struct Structure This_Structure ) ;
+extern struct DNA_Structure translate_dna_structure_onto_origin( struct DNA_Structure This_Structure ) ;
 extern struct Structure rotate_structure( struct Structure This_Structure , int z_twist , int theta , int phi ) ;
+extern struct DNA_Structure rotate_dna_structure( struct DNA_Structure This_Structure , int z_twist , int theta , int phi ) ;
 extern struct Structure merge_structures( struct Structure Structure_One , struct Structure Structure_Two ) ;
 extern float radius_of_structure( struct Structure This_Structure ) ;
-extern float total_span_of_structures( struct Structure Structure_1 , struct Structure Structure_2 ) ;
+extern float radius_of_dna_structure( struct DNA_Structure This_Structure ) ;
+extern float total_span_of_structures( float Radius_Structure_1 , float Radius_Structure_2 ) ;
 
 extern struct Angle generate_global_angles( int angle_step ) ;
 extern struct Angle generate_range_of_angles( int angle_step , int angle_range , int z_twist , int theta , int phi ) ;
 
 extern __device__ __host__ int gord( float position , float grid_span , int grid_size ) ;
 extern __device__ float pythagoras( float x1 , float y1 , float z1 , float x2 , float y2 , float z2 ) ;
-
 extern void discretise_structure( struct Structure This_Structure , float grid_span , int grid_size , cufftReal *grid,int size1) ;
+extern void discretise_dna_structure( struct DNA_Structure This_Structure , float grid_span , int grid_size , cufftReal *grid,int size1) ;
 extern void __global__ surface_grid( float grid_span , int grid_size , cufftReal *grid , float surface , float internal_value ) ;
 
 extern void assign_charges( struct Structure This_Structure ) ;

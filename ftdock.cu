@@ -163,10 +163,13 @@ int main( int argc , char *argv[] ) {
   /* Structures */
 
   struct Structure	Static_Structure , Mobile_Structure ;
+  struct DNA_Structure DNA_Static_Structure, DNA_Mobile_Structure;
   struct Structure	Origin_Static_Structure , Origin_Mobile_Structure ;
+  struct DNA_Structure	DNA_Origin_Static_Structure , DNA_Origin_Mobile_Structure ;
   struct Structure	Rotated_at_Origin_Mobile_Structure ;
+  struct DNA_Structure	DNA_Rotated_at_Origin_Mobile_Structure ;
 
-
+  int mode=0;
 
   /* Grid stuff */
 
@@ -352,8 +355,17 @@ int main( int argc , char *argv[] ) {
                           default_global_grid_size = "(user defined calculated)" ;
                           sscanf( argv[i] , "%f" , &reverse_calculated_one_span ) ;
                         } else {
+                           if( strcmp( argv[i] , "-mode" ) == 0 ) {
+                            i ++ ;
+                            if( ( i == argc ) || ( strncmp( argv[i] , "-" , 1 ) == 0 ) ) {
+                            printf( "Bad command line\n" ) ;
+                            exit( EXIT_FAILURE ) ;
+                          }
+                         sscanf( argv[i] , "%d" , &mode ) ;
+                      }  else{
                           printf( "Bad command line\n" ) ;
                           exit( EXIT_FAILURE ) ;
+                      }
                         }
                       }
                     }
@@ -390,7 +402,7 @@ int main( int argc , char *argv[] ) {
     default_electrostatics = "(read from rescue file)" ;
 
     while( fgets( line_buffer , 99 , ftdock_file ) ) {
-
+      if( strncmp( line_buffer , "Mode" ,4 ) == 0 ) sscanf( line_buffer , "Mode :: %d" , mode ) ;
       if( strncmp( line_buffer , "Static molecule" , 15 ) == 0 ) sscanf( line_buffer , "Static molecule :: %s" , static_file_name ) ;
       if( strncmp( line_buffer , "Mobile molecule" , 15 ) == 0 ) sscanf( line_buffer , "Mobile molecule :: %s" , mobile_file_name ) ;
       if( strncmp( line_buffer , "Output file name" , 16 ) == 0 ) sscanf( line_buffer , "Output file name :: %s" , output_file_name ) ;
@@ -438,16 +450,58 @@ int main( int argc , char *argv[] ) {
   /* Do these things first so that bad inputs will be caught soonest */
 
   /* Read in Structures from pdb files */
-  Static_Structure = read_pdb_to_structure( static_file_name ) ;
-  Mobile_Structure = read_pdb_to_structure( mobile_file_name ) ;
-
-  if( Mobile_Structure.length > Static_Structure.length ) {
+  if(mode==0)
+  {
+    Static_Structure = read_pdb_to_structure( static_file_name ) ;
+    Mobile_Structure = read_pdb_to_structure( mobile_file_name ) ;
+    if( Mobile_Structure.length > Static_Structure.length ) {
     printf( "WARNING\n" ) ;
     printf( "The mobile molecule has more residues than the static\n" ) ;
     printf( "Are you sure you have the correct molecules?\n" ) ;
     printf( "Continuing anyway\n" ) ;
   }
   
+  }
+  else if(mode==1)
+  {
+    Static_Structure = read_pdb_to_structure( static_file_name ) ;
+    DNA_Mobile_Structure = read_pdb_to_dna_structure( mobile_file_name ) ;
+    if( DNA_Mobile_Structure.length > Static_Structure.length ) {
+    printf( "WARNING\n" ) ;
+    printf( "The mobile molecule has more residues than the static\n" ) ;
+    printf( "Are you sure you have the correct molecules?\n" ) ;
+    printf( "Continuing anyway\n" ) ;
+  }
+  }
+  else if(mode==2)
+  {
+    DNA_Static_Structure = read_pdb_to_dna_structure( static_file_name ) ;
+    Mobile_Structure = read_pdb_to_structure( mobile_file_name ) ;
+    if( Mobile_Structure.length > DNA_Static_Structure.length ) {
+    printf( "WARNING\n" ) ;
+    printf( "The mobile molecule has more residues than the static\n" ) ;
+    printf( "Are you sure you have the correct molecules?\n" ) ;
+    printf( "Continuing anyway\n" ) ;
+  }
+  }
+  else if(mode==3)
+  {
+    DNA_Static_Structure = read_pdb_to_dna_structure( static_file_name ) ;
+    DNA_Mobile_Structure = read_pdb_to_dna_structure( mobile_file_name ) ;
+    if( DNA_Mobile_Structure.length > DNA_Static_Structure.length ) {
+    printf( "WARNING\n" ) ;
+    printf( "The mobile molecule has more residues than the static\n" ) ;
+    printf( "Are you sure you have the correct molecules?\n" ) ;
+    printf( "Continuing anyway\n" ) ;
+  }
+  }
+  else
+  {
+    printf("Wrong mode of operation!\n");
+    exit( EXIT_FAILURE ) ;
+  }
+
+
 /************/
 
   /* Get angles */
@@ -459,7 +513,7 @@ int main( int argc , char *argv[] ) {
 
   /* Assign charges */
 
-  if( electrostatics == 1 ) {
+  if( electrostatics == 1 && mode==0) {
     printf( "Assigning charges\n" ) ;
     assign_charges( Static_Structure );
     assign_charges( Mobile_Structure ) ;
@@ -470,11 +524,11 @@ int main( int argc , char *argv[] ) {
 /************/
 
   /* Store new structures centered on Origin */
-
-  Origin_Static_Structure = translate_structure_onto_origin( Static_Structure ) ;
-  Origin_Mobile_Structure = translate_structure_onto_origin( Mobile_Structure ) ;
-  /* Free some memory */
-
+if (mode==0)
+{
+    Origin_Static_Structure = translate_structure_onto_origin( Static_Structure ) ;
+    Origin_Mobile_Structure = translate_structure_onto_origin( Mobile_Structure ) ;
+     
   for( i = 1 ; i <= Static_Structure.length ; i ++ ) {
     free( Static_Structure.Residue[i].Atom ) ;
   }
@@ -484,12 +538,70 @@ int main( int argc , char *argv[] ) {
     free( Mobile_Structure.Residue[i].Atom ) ;
   }
   free( Mobile_Structure.Residue ) ;
+  float r1=radius_of_structure(Origin_Static_Structure);
+  float r2=radius_of_structure(Origin_Mobile_Structure);
+   grid_span = total_span_of_structures( r1 , r2 ) ;
+}
+else if(mode==1)
+{
+    Origin_Static_Structure = translate_structure_onto_origin( Static_Structure ) ;
+    DNA_Origin_Mobile_Structure = translate_dna_structure_onto_origin( DNA_Mobile_Structure ) ;
 
-/************/
+  for( i = 1 ; i <= Static_Structure.length ; i ++ ) {
+    free( Static_Structure.Residue[i].Atom ) ;
+  }
+  free( Static_Structure.Residue ) ;
 
-  /* Calculate Grid stuff */
+  for( i = 1 ; i <= DNA_Mobile_Structure.length ; i ++ ) {
+    free( DNA_Mobile_Structure.nucleotide[i].Atom ) ;
+  }
+  free( DNA_Mobile_Structure.nucleotide ) ;
+    float r1=radius_of_structure(Origin_Static_Structure);
+  float r2=radius_of_dna_structure(DNA_Origin_Mobile_Structure);
+   grid_span = total_span_of_structures( r1 , r2 ) ;
+  
+}
 
-  grid_span = total_span_of_structures( Origin_Static_Structure , Origin_Mobile_Structure ) ;
+else if(mode==2)
+{
+    DNA_Origin_Static_Structure = translate_dna_structure_onto_origin( DNA_Static_Structure ) ;
+    Origin_Mobile_Structure = translate_structure_onto_origin( Mobile_Structure ) ;
+
+  for( i = 1 ; i <= DNA_Static_Structure.length ; i ++ ) {
+    free( DNA_Static_Structure.nucleotide[i].Atom ) ;
+  }
+  free( DNA_Static_Structure.nucleotide ) ;
+
+  for( i = 1 ; i <= Mobile_Structure.length ; i ++ ) {
+    free( Mobile_Structure.Residue[i].Atom ) ;
+  }
+  free( Mobile_Structure.Residue ) ;
+     float r1=radius_of_dna_structure(DNA_Origin_Static_Structure);
+  float r2=radius_of_structure(Mobile_Structure);
+   grid_span = total_span_of_structures( r1 , r2 ) ;
+  
+}
+
+else{ 
+    DNA_Origin_Static_Structure = translate_dna_structure_onto_origin( DNA_Static_Structure ) ;
+    DNA_Origin_Mobile_Structure = translate_dna_structure_onto_origin( DNA_Mobile_Structure ) ;
+
+    for( i = 1 ; i <= DNA_Static_Structure.length ; i ++ ) {
+    free( DNA_Static_Structure.nucleotide[i].Atom ) ;
+  }
+  free( DNA_Static_Structure.nucleotide ) ;
+  for( i = 1 ; i <= DNA_Mobile_Structure.length ; i ++ ) {
+    free( DNA_Mobile_Structure.nucleotide[i].Atom ) ;
+  }
+  free( DNA_Mobile_Structure.nucleotide ) ;
+  
+     float r1=radius_of_dna_structure(DNA_Origin_Static_Structure);
+       float r2=radius_of_dna_structure(DNA_Origin_Mobile_Structure);
+   grid_span = total_span_of_structures( r1 , r2 ) ;
+  
+
+}
+
 
   if( calculate == 1 ) {
     printf( "Using automatic calculation for grid size\n" ) ;
@@ -568,14 +680,15 @@ int main( int argc , char *argv[] ) {
   printf( "Setting up Static Structure\n" ) ;
 
   /* Discretise and surface the Static Structure (need do only once) */
-  
-  discretise_structure( Origin_Static_Structure , grid_span , global_grid_size , static_grid,size1);
+
+  if(mode<2)discretise_structure( Origin_Static_Structure , grid_span , global_grid_size , static_grid,size1);
+  else discretise_dna_structure(DNA_Origin_Static_Structure,grid_span , global_grid_size , static_grid,size1);
   printf( "  surfacing grid\n") ;
   dim3 numblocks(((global_grid_size-1)/threadperblock3D.x)+1,((global_grid_size-1)/threadperblock3D.y)+1,((global_grid_size-1)/threadperblock3D.z)+1);
   surface_grid<<<numblocks,threadperblock3D>>>( grid_span , global_grid_size , static_grid , surface , internal_value) ;
   cudaDeviceSynchronize();
   /* Calculate electic field at all grid nodes (need do only once) */
-  if( electrostatics == 1 ) {
+  if( electrostatics == 1 &&mode==0) {
     electric_field( Origin_Static_Structure , grid_span , global_grid_size , static_elec_grid ) ;
     electric_field_zero_core<<<numblocks,threadperblock3D>>>( global_grid_size , static_elec_grid , static_grid , internal_value) ;
     cudaDeviceSynchronize();
@@ -604,6 +717,7 @@ int main( int argc , char *argv[] ) {
   fprintf( ftdock_file, "\nGlobal Scan\n" ) ;
 
   fprintf( ftdock_file, "\nCommand line controllable values\n" ) ;
+  fprintf(ftdock_file,  "Mode                               :: %d\n",mode);
   fprintf( ftdock_file, "Static molecule                    :: %s\n" , static_file_name ) ;
   fprintf( ftdock_file, "Mobile molecule                    :: %s\n" , mobile_file_name ) ;
   fprintf( ftdock_file, "Output file name                   :: %s\n" , output_file_name ) ;
@@ -642,13 +756,20 @@ int main( int argc , char *argv[] ) {
     if( ( rotation % 50 ) == 0 ) printf( "\nRotation number %5d\n" , rotation ) ;
 
     /* Rotate Mobile Structure */
-    Rotated_at_Origin_Mobile_Structure = rotate_structure( Origin_Mobile_Structure , (int)Angles.z_twist[rotation] , (int)Angles.theta[rotation] , (int)Angles.phi[rotation] ) ;
-
+    if(mode==0||mode==2)
+    {
+      Rotated_at_Origin_Mobile_Structure = rotate_structure( Origin_Mobile_Structure , (int)Angles.z_twist[rotation] , (int)Angles.theta[rotation] , (int)Angles.phi[rotation] ) ;
+      discretise_structure( Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_grid,size1) ;
+    }
+    else{
+      DNA_Rotated_at_Origin_Mobile_Structure = rotate_dna_structure( DNA_Origin_Mobile_Structure , (int)Angles.z_twist[rotation] , (int)Angles.theta[rotation] , (int)Angles.phi[rotation] ) ;
+      discretise_dna_structure( DNA_Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_grid,size1) ;
+    }
     /* Discretise the rotated Mobile Structure */
-    discretise_structure( Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_grid,size1) ;
+    
   
     /* Electic point charge approximation onto grid calculations ( quicker than filed calculations by a long way! ) */
-    if( electrostatics == 1 ) {
+    if( electrostatics==1&&mode==0) {
      
       electric_point_charge( Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_elec_grid) ;
 
@@ -658,7 +779,7 @@ int main( int argc , char *argv[] ) {
     /* Forward Fourier Transforms */
     result = cufftExecR2C( p , mobile_grid , mobile_fsg ) ;
     cudaDeviceSynchronize();
-    if( electrostatics == 1 ) {
+    if( electrostatics == 1 && mode==0) {
           result = cufftExecR2C( p , mobile_elec_grid , mobile_elec_fsg ) ;
           cudaDeviceSynchronize();
     }
@@ -722,13 +843,24 @@ int main( int argc , char *argv[] ) {
     fclose( ftdock_file ) ;
 
     /* Free some memory */
+if(mode==0||mode==2){
     for( i = 1 ; i <= Rotated_at_Origin_Mobile_Structure.length ; i ++ ) {
       free( Rotated_at_Origin_Mobile_Structure.Residue[i].Atom ) ;
     }
     free( Rotated_at_Origin_Mobile_Structure.Residue ) ;
 
   }
-   
+
+else{
+    for( i = 1 ; i <= DNA_Rotated_at_Origin_Mobile_Structure.length ; i ++ ) {
+      free( DNA_Rotated_at_Origin_Mobile_Structure.nucleotide[i].Atom ) ;
+    }
+    free( DNA_Rotated_at_Origin_Mobile_Structure.nucleotide ) ;
+
+  }
+
+}
+
   /* Finished main loop */
 
 /************/
@@ -749,16 +881,21 @@ int main( int argc , char *argv[] ) {
     error =cudaFree( convoluted_elec_grid ) ;
   }
 
+if(mode==0||mode==1)
+{
   for( i = 1 ; i <= Origin_Static_Structure.length ; i ++ ) {
     free( Origin_Static_Structure.Residue[i].Atom ) ;
   }
   free( Origin_Static_Structure.Residue ) ;
+}
 
-  for( i = 1 ; i <= Origin_Mobile_Structure.length ; i ++ ) {
-    free( Origin_Mobile_Structure.Residue[i].Atom ) ;
+else
+{
+  for( i = 1 ; i <= DNA_Origin_Mobile_Structure.length ; i ++ ) {
+    free( DNA_Origin_Mobile_Structure.nucleotide[i].Atom ) ;
   }
-  free( Origin_Mobile_Structure.Residue ) ;
-
+  free( DNA_Origin_Mobile_Structure.nucleotide) ;
+}
 /************/
 
   /* Read in all the scores */
