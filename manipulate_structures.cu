@@ -715,6 +715,37 @@ if(residue<ydim){
 
 
 }
+
+__global__ void RotateDNAonGPU(Nucleic_Acid *nucleotide,int z_twist , int theta , int phi,int ydim )
+{
+  int residue=threadIdx.y+(blockDim.y*blockIdx.y);
+  int atom=threadIdx.x+(blockDim.x*blockIdx.x);
+  float			post_z_twist_x , post_z_twist_y , post_z_twist_z ;
+  float			post_theta_x , post_theta_y , post_theta_z ;
+if(residue<ydim){
+  if((residue>0)&&(atom>0)&&(atom<=nucleotide[residue].size)){
+      /* Perform Z axis twist */
+      post_z_twist_x = nucleotide[residue].Atom[atom].coord[1] * cos( 0.017453293 * z_twist ) - nucleotide[residue].Atom[atom].coord[2] * sin( 0.017453293 * z_twist ) ;
+      post_z_twist_y = nucleotide[residue].Atom[atom].coord[1] * sin( 0.017453293 * z_twist ) + nucleotide[residue].Atom[atom].coord[2] * cos( 0.017453293 * z_twist ) ;
+      post_z_twist_z = nucleotide[residue].Atom[atom].coord[3] ;
+
+      /* Perform theta twist along plane of x-z */
+      post_theta_x = post_z_twist_z * sin( 0.017453293 * theta ) + post_z_twist_x * cos( 0.017453293 * theta ) ; 
+      post_theta_y = post_z_twist_y ;
+      post_theta_z = post_z_twist_z * cos( 0.017453293 * theta ) - post_z_twist_x * sin( 0.017453293 * theta ) ; 
+
+      /* Perform phi twist around z axis */
+      nucleotide[residue].Atom[atom].coord[1] = post_theta_x * cos( 0.017453293 * phi ) - post_theta_y * sin( 0.017453293 * phi ) ;
+      nucleotide[residue].Atom[atom].coord[2] = post_theta_x * sin( 0.017453293 * phi ) + post_theta_y * cos( 0.017453293 * phi ) ;
+      nucleotide[residue].Atom[atom].coord[3] = post_theta_z ;
+
+  
+  }
+
+  }
+
+
+}
 struct Structure rotate_structure( struct Structure This_Structure , int z_twist , int theta , int phi ) {
 
 /************/
@@ -754,6 +785,52 @@ int a=0;
   }
   free(Residue);
   cudaFree(d_Residue);
+
+  return New_Structure ;
+
+/************/
+
+}
+
+struct DNA_Structure rotate_dna_structure( struct DNA_Structure This_Structure , int z_twist , int theta , int phi ) {
+
+/************/
+
+  /* Variables */
+  struct DNA_Structure	New_Structure ;
+
+/************/
+int a=0;
+  New_Structure = duplicate_dna_structure( This_Structure ) ;
+  struct Nucleic_Acid *nucleotide,*d_nucleotide;
+  nucleotide = (struct Nucleic_Acid*)malloc((This_Structure.length+1)*sizeof(Amino_Acid));
+  for (int i = 1; i <=This_Structure.length; i++)
+  {
+    
+    nucleotide[i]=This_Structure.nucleotide[i];
+    cudaMalloc((void**)&nucleotide[i].Atom,(This_Structure.nucleotide[i].size+1)*sizeof(struct Atom));
+    cudaMemcpy(nucleotide[i].Atom,This_Structure.nucleotide[i].Atom,(This_Structure.nucleotide[i].size+1)*sizeof(struct Atom),cudaMemcpyHostToDevice);
+    a=max(a,This_Structure.nucleotide[i].size);
+    
+  }
+  cudaMalloc((void**)&d_nucleotide,(This_Structure.length+1)*sizeof(struct Nucleic_Acid));
+  cudaMemcpy(d_nucleotide,nucleotide,(This_Structure.length+1)*sizeof(struct Nucleic_Acid),cudaMemcpyHostToDevice);
+
+  dim3 numblocks((a/threadperblock2D.x)+1,(This_Structure.length/threadperblock2D.y)+1);
+  RotateDNAonGPU<<<numblocks,threadperblock2D>>>(d_nucleotide,z_twist,phi,theta,This_Structure.length+1);
+  cudaDeviceSynchronize();
+
+/************/
+  cudaMemcpy(nucleotide,d_nucleotide,(This_Structure.length+1)*sizeof(struct Nucleic_Acid),cudaMemcpyDeviceToHost);
+  for (int i = 1; i <= This_Structure.length; i++)
+  {
+ 
+    cudaMemcpy(New_Structure.nucleotide[i].Atom,nucleotide[i].Atom,(This_Structure.nucleotide[i].size+1)*sizeof(struct Atom),cudaMemcpyDeviceToHost);
+    cudaFree(nucleotide[i].Atom);
+  
+  }
+  free(nucleotide);
+  cudaFree(d_nucleotide);
 
   return New_Structure ;
 

@@ -153,6 +153,7 @@ extern struct Structure translate_structure( struct Structure This_Structure , f
 extern struct Structure translate_structure_onto_origin( struct Structure This_Structure ) ;
 extern struct DNA_Structure translate_dna_structure_onto_origin( struct DNA_Structure This_Structure ) ;
 extern struct Structure rotate_structure( struct Structure This_Structure , int z_twist , int theta , int phi ) ;
+extern struct DNA_Structure rotate_dna_structure( struct DNA_Structure This_Structure , int z_twist , int theta , int phi ) ;
 extern struct Structure merge_structures( struct Structure Structure_One , struct Structure Structure_Two ) ;
 extern float radius_of_structure( struct Structure This_Structure ) ;
 extern float radius_of_dna_structure( struct DNA_Structure This_Structure ) ;

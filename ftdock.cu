@@ -756,13 +756,20 @@ else{
     if( ( rotation % 50 ) == 0 ) printf( "\nRotation number %5d\n" , rotation ) ;
 
     /* Rotate Mobile Structure */
-    Rotated_at_Origin_Mobile_Structure = rotate_structure( Origin_Mobile_Structure , (int)Angles.z_twist[rotation] , (int)Angles.theta[rotation] , (int)Angles.phi[rotation] ) ;
-
+    if(mode==0||mode==2)
+    {
+      Rotated_at_Origin_Mobile_Structure = rotate_structure( Origin_Mobile_Structure , (int)Angles.z_twist[rotation] , (int)Angles.theta[rotation] , (int)Angles.phi[rotation] ) ;
+      discretise_structure( Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_grid,size1) ;
+    }
+    else{
+      DNA_Rotated_at_Origin_Mobile_Structure = rotate_dna_structure( DNA_Origin_Mobile_Structure , (int)Angles.z_twist[rotation] , (int)Angles.theta[rotation] , (int)Angles.phi[rotation] ) ;
+      discretise_dna_structure( DNA_Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_grid,size1) ;
+    }
     /* Discretise the rotated Mobile Structure */
-    discretise_structure( Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_grid,size1) ;
+    
   
     /* Electic point charge approximation onto grid calculations ( quicker than filed calculations by a long way! ) */
-    if( electrostatics == 1 ) {
+    if( electrostatics == 1&&mode==0) {
      
       electric_point_charge( Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_elec_grid) ;
 
@@ -772,7 +779,7 @@ else{
     /* Forward Fourier Transforms */
     result = cufftExecR2C( p , mobile_grid , mobile_fsg ) ;
     cudaDeviceSynchronize();
-    if( electrostatics == 1 ) {
+    if( electrostatics == 1 && mode==0) {
           result = cufftExecR2C( p , mobile_elec_grid , mobile_elec_fsg ) ;
           cudaDeviceSynchronize();
     }
@@ -836,13 +843,24 @@ else{
     fclose( ftdock_file ) ;
 
     /* Free some memory */
+if(mode==0||mode==2){
     for( i = 1 ; i <= Rotated_at_Origin_Mobile_Structure.length ; i ++ ) {
       free( Rotated_at_Origin_Mobile_Structure.Residue[i].Atom ) ;
     }
     free( Rotated_at_Origin_Mobile_Structure.Residue ) ;
 
   }
-   
+
+if(mode==1||mode==3){
+    for( i = 1 ; i <= DNA_Rotated_at_Origin_Mobile_Structure.length ; i ++ ) {
+      free( DNA_Rotated_at_Origin_Mobile_Structure.nucleotide[i].Atom ) ;
+    }
+    free( DNA_Rotated_at_Origin_Mobile_Structure.nucleotide ) ;
+
+  }
+
+}
+
   /* Finished main loop */
 
 /************/
@@ -863,16 +881,21 @@ else{
     error =cudaFree( convoluted_elec_grid ) ;
   }
 
+if(mode==0&&mode==1)
+{
   for( i = 1 ; i <= Origin_Static_Structure.length ; i ++ ) {
     free( Origin_Static_Structure.Residue[i].Atom ) ;
   }
   free( Origin_Static_Structure.Residue ) ;
+}
 
-  for( i = 1 ; i <= Origin_Mobile_Structure.length ; i ++ ) {
-    free( Origin_Mobile_Structure.Residue[i].Atom ) ;
+else
+{
+  for( i = 1 ; i <= DNA_Origin_Mobile_Structure.length ; i ++ ) {
+    free( DNA_Origin_Mobile_Structure.nucleotide[i].Atom ) ;
   }
-  free( Origin_Mobile_Structure.Residue ) ;
-
+  free( DNA_Origin_Mobile_Structure.nucleotide) ;
+}
 /************/
 
   /* Read in all the scores */
