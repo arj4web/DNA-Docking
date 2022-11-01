@@ -372,7 +372,43 @@ struct DNA_Structure read_pdb_to_dna_structure( char *pdb_file_name ) {
 
 /************************/
 
+void write_dna_structure_to_pdb( struct DNA_Structure This_Structure , char *pdb_file_name ) {
 
+/************/
+
+  /* Variables */
+
+  /* Counters */
+  int	residue , atom ;
+
+  /* File stuff */
+  FILE		*pdb_file ;
+
+/************/
+
+  /* File handling */
+
+  /* Open file */
+  printf( "Writing file: %s\n", pdb_file_name ) ;
+  if( ( pdb_file = fopen( pdb_file_name, "w" ) ) == NULL ) {
+    printf( "This file could not be opened.\nDying\n\n" ) ;
+    exit(  EXIT_FAILURE ) ;
+  }
+
+/************/
+
+  /* Write PDB file */
+
+  for( residue = 1 ; residue <= This_Structure.length ; residue ++ ) {
+
+    for( atom = 1 ; atom <= This_Structure.nucleotide[residue].size ; atom ++ ) {
+
+      fprintf( pdb_file, "ATOM  %5d %4s %3s %1s%5s   %8.3f%8.3f%8.3f%6.2f%6.2f              %1s\n", This_Structure.nucleotide[residue].Atom[atom].serial, This_Structure.nucleotide[residue].Atom[atom].atom_name, This_Structure.nucleotide[residue].nucleicAcid_name, This_Structure.nucleotide[residue].chainID, This_Structure.nucleotide[residue].nuCode, This_Structure.nucleotide[residue].Atom[atom].coord[1], This_Structure.nucleotide[residue].Atom[atom].coord[2], This_Structure.nucleotide[residue].Atom[atom].coord[3], This_Structure.nucleotide[residue].Atom[atom].occupancy, This_Structure.nucleotide[residue].Atom[atom].temp_factor, This_Structure.nucleotide[residue].olc) ;
+
+    }
+
+  }
+}
 
 void write_structure_to_pdb( struct Structure This_Structure , char *pdb_file_name ) {
 

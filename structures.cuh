@@ -148,6 +148,7 @@ struct Matrix{
 extern struct Structure read_pdb_to_structure( char *pdb_file_name ) ;
 extern struct DNA_Structure read_pdb_to_dna_structure( char *pdb_file_name ) ;
 extern void write_structure_to_pdb( struct Structure This_Structure , char *pdb_file_name ) ;
+extern void write_dna_structure_to_pdb( struct DNA_Structure This_Structure , char *pdb_file_name ) ;
 extern struct Structure duplicate_structure( struct Structure This_Structure ) ;
 extern struct Structure translate_structure( struct Structure This_Structure , float x_shift , float y_shift , float z_shift ) ;
 extern struct Structure translate_structure_onto_origin( struct Structure This_Structure ) ;
