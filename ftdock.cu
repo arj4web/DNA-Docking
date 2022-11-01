@@ -769,7 +769,7 @@ else{
     
   
     /* Electic point charge approximation onto grid calculations ( quicker than filed calculations by a long way! ) */
-    if( electrostatics == 1&&mode==0) {
+    if( electrostatics==1&&mode==0) {
      
       electric_point_charge( Rotated_at_Origin_Mobile_Structure , grid_span , global_grid_size , mobile_elec_grid) ;
 
@@ -851,7 +851,7 @@ if(mode==0||mode==2){
 
   }
 
-if(mode==1||mode==3){
+else{
     for( i = 1 ; i <= DNA_Rotated_at_Origin_Mobile_Structure.length ; i ++ ) {
       free( DNA_Rotated_at_Origin_Mobile_Structure.nucleotide[i].Atom ) ;
     }
@@ -881,7 +881,7 @@ if(mode==1||mode==3){
     error =cudaFree( convoluted_elec_grid ) ;
   }
 
-if(mode==0&&mode==1)
+if(mode==0||mode==1)
 {
   for( i = 1 ; i <= Origin_Static_Structure.length ; i ++ ) {
     free( Origin_Static_Structure.Residue[i].Atom ) ;
