@@ -28,35 +28,35 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 #include "structures.cuh"
 
-__global__ void z_rotation(Angle Angles,int n,int angle_step,int theta)
+__global__ void z_rotation(int *z_twist,int *theta,int *phi,int n,int angle_step,int dtheta)
 {
     int i=threadIdx.x;
     if(i%angle_step==0)
     {
       int z=n+(i/angle_step)+1;
-      Angles.z_twist[z] = i;
-      Angles.theta[z]   = theta ;
-      Angles.phi[z]     = 0 ;
+      z_twist[z] = i;
+      theta[z]   = dtheta ;
+      phi[z]     = 0 ;
     }
 
 
 
 }
-__global__ void all_rotation(Angle Angles,int n,int angle_step,int phi_step_for_this_theta,int theta)
+__global__ void all_rotation(int *z_twist,int *theta,int *phi,int n,int angle_step,int phi_step_for_this_theta,int rtheta)
 {
     
-    int phi=threadIdx.x+(blockDim.x*blockIdx.x);
-    int z_twist = threadIdx.y+(blockDim.y*blockIdx.y);
-    if(z_twist<360&&phi<360){
-      if (phi%phi_step_for_this_theta==0)
+    int rphi=threadIdx.x+(blockDim.x*blockIdx.x);
+    int rz_twist = threadIdx.y+(blockDim.y*blockIdx.y);
+    if(rz_twist<360&&rphi<360){
+      if (rphi%phi_step_for_this_theta==0)
       {
-        if(z_twist%angle_step==0)
+        if(rz_twist%angle_step==0)
         {
    
-          int k=((phi/phi_step_for_this_theta)*((359/angle_step)+1))+(z_twist/angle_step)+1;
-          Angles.z_twist[n+k] = z_twist;
-          Angles.theta[n+k]   = theta ;
-          Angles.phi[n+k]     = phi;
+          int k=((rphi/phi_step_for_this_theta)*((359/angle_step)+1))+(rz_twist/angle_step)+1;
+          z_twist[n+k] = rz_twist;
+          theta[n+k]   = rtheta ;
+          phi[n+k]     = rphi;
 
 
         }
@@ -118,7 +118,7 @@ Angle generate_global_angles( int angle_step ) {
 
 /************/
 //Parallelized
-z_rotation<<<1,360>>>(AnglesonGPU,n,angle_step,0);
+z_rotation<<<1,360>>>(AnglesonGPU.z_twist,AnglesonGPU.theta,AnglesonGPU.phi,n,angle_step,0);
 cudaDeviceSynchronize();
 n+=(359/angle_step)+1;
  
@@ -130,12 +130,12 @@ dim3 numblock((359/threadperblock2D.x)+1,(359/threadperblock2D.x)+1);
 
     while( ( 360 % phi_step_for_this_theta ) != 0 ) phi_step_for_this_theta -- ;
 
-    all_rotation<<<numblock,threadperblock2D>>>(AnglesonGPU, n, angle_step, phi_step_for_this_theta, theta);
+    all_rotation<<<numblock,threadperblock2D>>>(AnglesonGPU.z_twist,AnglesonGPU.theta,AnglesonGPU.phi, n, angle_step, phi_step_for_this_theta, theta);
     cudaDeviceSynchronize();
     n+=(((359/phi_step_for_this_theta)+1)*((359/angle_step)+1)) ;
 
 }
-z_rotation<<<1,360>>>(AnglesonGPU,n,angle_step,180);
+z_rotation<<<1,360>>>(AnglesonGPU.z_twist,AnglesonGPU.theta,AnglesonGPU.phi,n,angle_step,180);
 cudaDeviceSynchronize();
 n+=(359/angle_step)+1;
 /************/

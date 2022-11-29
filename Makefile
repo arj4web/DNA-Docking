@@ -56,7 +56,7 @@ FFTW_LINKERS    = -L$(FFTW_DIR)
 
 LIBRARY_OBJECTS =manipulate_structures.o angles.o coordinates.o electrostatics.o grid.o qsort_scores.o
 
-PROGRAMS = ftdock build randomspin
+PROGRAMS = ftdock build randomspin error
 
 all:		$(PROGRAMS)
 
@@ -78,6 +78,9 @@ randomspin:	randomspin.o $(LIBRARY_OBJECTS) structures.cuh
 		$(NVCC) $(NVCC_FLAGS) $(LIBRARY_OBJECTS) $(LIBS) -o $@ randomspin.o
 
 #############
+
+error:		error.o $(LIBRARY_OBJECTS) structures.cuh
+		$(NVCC) $(NVCC_FLAGS) $(LIBRARY_OBJECTS) $(LIBS) -o $@ error.o 
 
 clean:
 		rm -f *.o core $(PROGRAMS)
