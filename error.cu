@@ -229,7 +229,7 @@ __global__ void calculate_error(Amino_Acid *residue1,Amino_Acid *residue2,int yd
             {
                 counter+=residue1[i].size;
             }
-            RMS[counter+atom]=error*100;
+            RMS[counter+atom]=error;
             
             }
       }
