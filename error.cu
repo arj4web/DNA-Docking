@@ -110,12 +110,16 @@ int main(int argc, char *argv[])
   RMS=(float *)malloc((t+1)*sizeof(float));
   cudaMemcpy(RMS,d_RMS,(t+1)*sizeof(float),cudaMemcpyDeviceToHost);
 
-  printf("Following are the notable errors in the 2 PDB's\n");
+
+  float rmsd=0;
+  int aq=0;
   for ( i = 1; i < t+1; i++)
   {
-    if(RMS[i]>0)printf("%f\n",RMS[i]);
+    if(RMS[i]>0)aq++;
+    rmsd=rmsd+(RMS[i]*RMS[i]);
   }
-  
+  if(aq>0)rmsd=sqrt(rmsd/aq);
+  printf("The rmsd error is: %f \n",rmsd);
   cudaFree(d_Residue1);
   cudaFree(d_Residue2);
   cudaFree(d_RMS);
