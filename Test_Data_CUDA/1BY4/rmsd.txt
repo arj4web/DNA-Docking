@@ -1,0 +1,6 @@
+     Complex Name  RMSD
+0        1BY4.pdb  0.00
+0  Complex_1g.pdb  0.81
+0  Complex_3g.pdb  0.83
+0  Complex_4g.pdb  0.93
+0  Complex_6g.pdb  1.30

@@ -861,6 +861,8 @@ else{
 
 }
 
+
+
   /* Finished main loop */
 
 /************/
@@ -892,9 +894,11 @@ if(mode==0||mode==1)
 else
 {
   for( i = 1 ; i <= DNA_Origin_Mobile_Structure.length ; i ++ ) {
-    free( DNA_Origin_Mobile_Structure.nucleotide[i].Atom ) ;
+    free( DNA_Origin_Static_Structure.nucleotide[i].Atom ) ;
   }
-  free( DNA_Origin_Mobile_Structure.nucleotide) ;
+  free( DNA_Origin_Static_Structure.nucleotide) ;
+
+
 }
 /************/
 

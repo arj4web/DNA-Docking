@@ -1,0 +1,14 @@
+         Complex Name   RMSD       ASA        IA
+0            1cdt.pdb   0.00  7050.567  470.0825
+0   1cdt_modified.pdb   0.00  7050.567  470.0825
+0    Complex_434g.pdb   0.70  6842.627  572.6225
+0   Complex_6904g.pdb   1.95  7109.199  437.9605
+0   Complex_2724g.pdb   2.12  6986.377  502.3390
+..                ...    ...       ...       ...
+0   Complex_9151g.pdb  27.17  7418.079  280.8625
+0   Complex_9150g.pdb  27.18  7459.189  265.5985
+0   Complex_9724g.pdb  27.20  7454.676  268.1720
+0   Complex_7595g.pdb  27.23  7222.880  384.4275
+0   Complex_9723g.pdb  27.28  7481.132  254.6415
+
+[10002 rows x 4 columns]

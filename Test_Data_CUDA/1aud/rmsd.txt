@@ -1,0 +1,6 @@
+        Complex Name  RMSD
+0  1aud_modified.pdb  0.00
+0  Complex_1413g.pdb  0.88
+0  Complex_3174g.pdb  1.07
+0  Complex_1310g.pdb  1.18
+0   Complex_525g.pdb  1.27

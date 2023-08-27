@@ -1,0 +1,6 @@
+        Complex Name   RMSD
+0           1CMA.pdb   0.00
+0  Complex_1754g.pdb  19.32
+0   Complex_418g.pdb  19.33
+0  Complex_5892g.pdb  19.36
+0   Complex_300g.pdb  19.36

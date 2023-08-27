@@ -1,0 +1,6 @@
+        Complex Name  RMSD
+0           1AZP.pdb  0.00
+0   Complex_919g.pdb  1.64
+0  Complex_3814g.pdb  2.77
+0  Complex_5503g.pdb  2.98
+0  Complex_1866g.pdb  3.35

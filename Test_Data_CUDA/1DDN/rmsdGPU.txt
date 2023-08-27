@@ -1,0 +1,6 @@
+        Complex Name  RMSD
+0           1DDN.pdb  0.00
+0  1DDN_modified.pdb  0.00
+0    Complex_14g.pdb  0.95
+0    Complex_51g.pdb  1.08
+0  Complex_4993g.pdb  9.80
