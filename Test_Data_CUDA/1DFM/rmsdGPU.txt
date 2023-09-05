@@ -1,6 +1,6 @@
         Complex Name  RMSD
 0           1DFM.pdb  0.00
-0  Complex_3415g.pdb  8.03
-0  Complex_2767g.pdb  8.60
-0  Complex_9086g.pdb  8.79
-0  Complex_5580g.pdb  8.83
+0  Complex_3416g.pdb  8.03
+0  Complex_7143g.pdb  8.38
+0  Complex_2784g.pdb  8.60
+0  Complex_9109g.pdb  8.79

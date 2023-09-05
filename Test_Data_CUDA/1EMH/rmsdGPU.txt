@@ -1,0 +1,6 @@
+        Complex Name  RMSD
+0           1EMH.pdb  0.00
+0  Complex_8319g.pdb  0.80
+0  Complex_2939g.pdb  0.80
+0  Complex_7324g.pdb  0.89
+0  Complex_2691g.pdb  0.98

@@ -1,0 +1,6 @@
+        Complex Name  RMSD
+0           1DIZ.pdb  0.00
+0  Complex_9039g.pdb  3.10
+0   Complex_926g.pdb  3.93
+0  Complex_5592g.pdb  6.32
+0  Complex_4179g.pdb  6.77

@@ -1,0 +1,6 @@
+        Complex Name  RMSD
+0           1FOK.pdb  0.00
+0     Complex_7g.pdb  0.71
+0  Complex_1802g.pdb  0.85
+0  Complex_1417g.pdb  1.23
+0     Complex_4g.pdb  1.28

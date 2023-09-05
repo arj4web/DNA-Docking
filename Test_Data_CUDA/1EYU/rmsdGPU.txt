@@ -1,0 +1,6 @@
+        Complex Name  RMSD
+0           1EYU.pdb  0.00
+0  Complex_4564g.pdb  0.54
+0    Complex_25g.pdb  0.60
+0     Complex_1g.pdb  0.62
+0   Complex_526g.pdb  0.67

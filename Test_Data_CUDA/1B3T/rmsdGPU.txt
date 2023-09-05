@@ -1,6 +1,6 @@
         Complex Name  RMSD
 0           1B3T.pdb  0.00
-0   Complex_546g.pdb  5.70
-0  Complex_8726g.pdb  6.31
-0   Complex_269g.pdb  6.76
-0  Complex_3566g.pdb  6.93
+0   Complex_518g.pdb  5.70
+0   Complex_237g.pdb  6.76
+0  Complex_3540g.pdb  6.93
+0  Complex_1062g.pdb  6.93
